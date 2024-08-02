@@ -1,7 +1,10 @@
 const { VN_REGION, VN_REGION_TRUNK } = require('../../constant');
 const fetchData = require('../../modules/fetchData');
 const { fetchTollBoth } = require('../../modules/fetchTollBoth');
-const { loadHighways } = require('../../modules/loadingHighWay');
+const {
+    loadHighways,
+    setCachedResults,
+} = require('../../modules/loadingHighWay');
 const { isPointInHighway, createPromise } = require('../../utils');
 const turf = require('@turf/turf');
 const fs = require('fs');
@@ -68,15 +71,19 @@ const insertData = async (req, res, col) => {
                 `./src/common/${col}/${col}-${index}.json`,
                 JSON.stringify(existingRef),
             );
+            setCachedResults(null);
+            loadHighways();
             return res.json(collections[index]);
         } else {
             data.id = collections.length;
-            data.highways[0].id = 1;
-            data.highways[0].ways[0].id = 1;
+            data.highways[0].id = 0;
+            data.highways[0].ways[0].id = 0;
             fs.writeFileSync(
                 `./src/common/${col}/${col}-${collections.length}.json`,
                 JSON.stringify(data),
             );
+            setCachedResults(null);
+            loadHighways();
             return res.json(collections[collections.length - 1]);
         }
     } catch (error) {
@@ -130,6 +137,8 @@ const deleteAndRestoreData = async (req, res, col, isDelete) => {
                 highway.isDelete = isDelete;
         }
         fs.writeFileSync(filePath, JSON.stringify(highway));
+        setCachedResults(null);
+        loadHighways();
         return res.json(highway);
     } catch (error) {
         console.log(error);
@@ -154,6 +163,8 @@ const updateDate = async (req, res, col) => {
                 if (data.name)
                     highway.highways[keys[0]].highway_name = data.name;
                 fs.writeFileSync(filePath, JSON.stringify(highway));
+                setCachedResults(null);
+                loadHighways();
                 return res.json(highway);
             }
             case 2: {
@@ -163,6 +174,8 @@ const updateDate = async (req, res, col) => {
                     data.min_speed;
                 highway.highways[keys[0]].ways[keys[1]].way_name = data.name;
                 fs.writeFileSync(filePath, JSON.stringify(highway));
+                setCachedResults(null);
+                loadHighways();
                 return res.json(highway);
             }
         }

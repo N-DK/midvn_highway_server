@@ -20,6 +20,11 @@ async function loadHighways() {
     }
 }
 
+function setCachedResults(results) {
+    cachedResults = results;
+}
+
 module.exports = {
+    setCachedResults,
     loadHighways,
 };
