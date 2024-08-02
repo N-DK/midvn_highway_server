@@ -20,6 +20,7 @@ router.put('/trunks/update/:id', api.updateTrunk);
 router.put('/highways/restore/:id', api.restoreHighway);
 router.put('/trunks/restore/:id', api.restoreTrunk);
 router.put('/tollboths/restore/:id', api.restoreTollBoth);
+router.get('/load-test', api.loadTest);
 router.get('/', api.index);
 
 module.exports = router;

@@ -1,4 +1,9 @@
-const { VN_REGION, VN_REGION_TRUNK } = require('../../constant');
+const autocannon = require('autocannon');
+const {
+    VN_REGION,
+    VN_REGION_TRUNK,
+    CONFIG_LOADTEST,
+} = require('../../constant');
 const fetchData = require('../../modules/fetchData');
 const { fetchTollBoth } = require('../../modules/fetchTollBoth');
 const {
@@ -9,6 +14,7 @@ const { isPointInHighway, createPromise } = require('../../utils');
 const turf = require('@turf/turf');
 const fs = require('fs');
 const path = require('path');
+const { Worker } = require('worker_threads');
 
 const insertData = async (req, res, col) => {
     try {
@@ -189,7 +195,7 @@ class APIController {
     async index(req, res, next) {
         res.json({ message: 'Hello World' });
     }
-    // [GET] /api/v1/highways?lat=10.762622&lng=106.660172
+    // [GET] /api/v1/check-way?lat=10.762622&lng=106.660172
     async getHighways(req, res, next) {
         if (!req.query.lat || !req.query.lng) {
             return res.json({ message: 'Missing lat or lng' });
@@ -197,11 +203,14 @@ class APIController {
 
         try {
             const results = await loadHighways();
-            const promises = results.map(async (ref) => {
-                const point = [req.query.lat, req.query.lng];
+            const point = [req.query.lat, req.query.lng];
+
+            // Sử dụng for...of thay vì map để tránh gửi phản hồi quá sớm
+            const highwaysInBounds = [];
+            for (const ref of results) {
                 const inBounds = isPointInHighway(point, ref.highways);
                 if (inBounds.isInBounds) {
-                    return res.json({
+                    highwaysInBounds.push({
                         _id: ref._id,
                         ref: ref.ref,
                         highway_name: inBounds.highway_name,
@@ -210,12 +219,16 @@ class APIController {
                         is_in_bounds: inBounds.isInBounds,
                     });
                 }
-            });
+            }
 
-            const result = (await Promise.all(promises)).filter(Boolean);
-            if (result.length === 0) return res.json({ is_in_bounds: false });
+            if (highwaysInBounds.length > 0) {
+                return res.json(highwaysInBounds[0]); // Trả về highway đầu tiên tìm thấy
+            } else {
+                return res.json({ is_in_bounds: false });
+            }
         } catch (error) {
             // console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
     }
 
@@ -362,6 +375,21 @@ class APIController {
     // [PUT] /api/v1/tollboths/restore/:id
     async restoreTollBoth(req, res, next) {
         deleteAndRestoreData(req, res, 'tollboths', 0);
+    }
+
+    // [GET] /api/v1/load-test
+    async loadTest(req, res, next) {
+        autocannon(CONFIG_LOADTEST, (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            } else {
+                return res.json({
+                    requests_per_second: result.requests.average,
+                    total_requests: result.requests.total,
+                    duration: result.duration,
+                });
+            }
+        });
     }
 }
 
