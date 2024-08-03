@@ -2,7 +2,7 @@ const { createPromise } = require('../utils');
 
 let cachedResults = null;
 
-async function loadHighways() {
+function loadHighways() {
     if (!cachedResults) {
         console.time('Loading data');
         const highways = createPromise('highways').filter(
@@ -12,7 +12,21 @@ async function loadHighways() {
             (item) => item.isDelete !== 1,
         );
         console.timeEnd('Loading data');
-        cachedResults = [...highways, ...trunks];
+        // cachedResults = [...highways, ...trunks];
+        var netKeys = {};
+        var data = {};
+        highways.forEach((h) => {
+            Object.keys(h.keyData).forEach((key) => {
+                netKeys[key] = h.keyData[key];
+            });
+            Object.keys(h.hData).forEach((key) => {
+                data[key] = h.hData[key];
+            });
+        });
+        cachedResults = {
+            netKeys,
+            data,
+        };
 
         return cachedResults;
     } else if (cachedResults) {

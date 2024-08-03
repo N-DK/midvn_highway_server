@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const api = require('../app/controllers/APIController');
 
-router.get('/check-way', api.getHighways);
+router.get('/check-way', api.highwayCheck);
 router.get('/search', api.search);
 router.post('/highways', api.insertHighway);
 router.post('/trunks', api.insertTrunk);

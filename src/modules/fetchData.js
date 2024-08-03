@@ -1,5 +1,6 @@
 const { default: axios } = require('axios');
 const turf = require('@turf/turf');
+const ways = require('./getway');
 const vietnameseRegex =
     /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
 
@@ -74,8 +75,6 @@ const fetchData = async (type) => {
             return acc;
         }, {});
 
-        let uniqueId = 0;
-
         const handleFindMaxSpeed = (data) => {
             return data.reduce(
                 (max, way) => Math.max(max, Number(way.maxSpeed) || 0),
@@ -110,7 +109,23 @@ const fetchData = async (type) => {
                 ),
             }),
         );
-        return groupedHighwaysArray;
+        return groupedHighwaysArray.map((ref) => ({
+            ref: ref.ref,
+            hData: ways(ref.highways, ref.ref).hData,
+            keyData: ways(ref.highways, ref.ref).keyData,
+            highways: ref.highways.map((highway) => ({
+                highway_name: highway.highway_name,
+                ways: highway.ways.map((way) => ({
+                    id: way.id,
+                    nodes: way.nodes,
+                    bounds: way.bounds,
+                    maxSpeed: way.maxSpeed,
+                    minSpeed: way.minSpeed,
+                    lanes: way.lanes,
+                    buffer_geometry: way.buffer_geometry,
+                })),
+            })),
+        }));
     } catch (error) {
         console.log(error);
     }

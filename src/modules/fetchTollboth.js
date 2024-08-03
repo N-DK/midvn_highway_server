@@ -1,6 +1,6 @@
 const { default: axios } = require('axios');
 const turf = require('@turf/turf');
-const { VN_REGION_TOLL_BOTH, TOKEN } = require('../constant');
+const { VN_REGION_TOLL_BOTH, TOKEN } = require('../constants');
 const vietnameseRegex =
     /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
 

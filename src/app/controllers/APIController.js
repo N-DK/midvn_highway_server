@@ -3,7 +3,7 @@ const {
     VN_REGION,
     VN_REGION_TRUNK,
     CONFIG_LOADTEST,
-} = require('../../constant');
+} = require('../../constants');
 const fetchData = require('../../modules/fetchData');
 const { fetchTollBoth } = require('../../modules/fetchTollBoth');
 const {
@@ -14,7 +14,7 @@ const { isPointInHighway, createPromise } = require('../../utils');
 const turf = require('@turf/turf');
 const fs = require('fs');
 const path = require('path');
-const { Worker } = require('worker_threads');
+const highwayModule = require('../../modules/_highways_');
 
 const insertData = async (req, res, col) => {
     try {
@@ -196,40 +196,67 @@ class APIController {
         res.json({ message: 'Hello World' });
     }
     // [GET] /api/v1/check-way?lat=10.762622&lng=106.660172
-    async getHighways(req, res, next) {
-        if (!req.query.lat || !req.query.lng) {
-            return res.json({ message: 'Missing lat or lng' });
-        }
+    // async getHighways(req, res, next) {
+    //     if (!req.query.lat || !req.query.lng) {
+    //         return res.json({ message: 'Missing lat or lng' });
+    //     }
 
-        try {
-            const results = await loadHighways();
-            const point = [req.query.lat, req.query.lng];
+    //     try {
+    //         const results = await loadHighways();
+    //         const point = [req.query.lat, req.query.lng];
 
-            // Sử dụng for...of thay vì map để tránh gửi phản hồi quá sớm
-            const highwaysInBounds = [];
-            for (const ref of results) {
-                const inBounds = isPointInHighway(point, ref.highways);
-                if (inBounds.isInBounds) {
-                    highwaysInBounds.push({
-                        _id: ref._id,
-                        ref: ref.ref,
-                        highway_name: inBounds.highway_name,
-                        max_speed: inBounds.max_speed ?? null,
-                        min_speed: inBounds.min_speed ?? null,
-                        is_in_bounds: inBounds.isInBounds,
-                    });
-                }
-            }
+    //         // Sử dụng for...of thay vì map để tránh gửi phản hồi quá sớm
+    //         const highwaysInBounds = [];
+    //         for (const ref of results) {
+    //             const inBounds = isPointInHighway(point, ref.highways);
+    //             if (inBounds.isInBounds) {
+    //                 highwaysInBounds.push({
+    //                     _id: ref._id,
+    //                     ref: ref.ref,
+    //                     highway_name: inBounds.highway_name,
+    //                     max_speed: inBounds.max_speed ?? null,
+    //                     min_speed: inBounds.min_speed ?? null,
+    //                     is_in_bounds: inBounds.isInBounds,
+    //                 });
+    //             }
+    //         }
 
-            if (highwaysInBounds.length > 0) {
-                return res.json(highwaysInBounds[0]); // Trả về highway đầu tiên tìm thấy
-            } else {
-                return res.json({ is_in_bounds: false });
-            }
-        } catch (error) {
-            // console.error(error);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
+    //         if (highwaysInBounds.length > 0) {
+    //             return res.json(highwaysInBounds[0]); // Trả về highway đầu tiên tìm thấy
+    //         } else {
+    //             return res.json({ is_in_bounds: false });
+    //         }
+    //     } catch (error) {
+    //         // console.error(error);
+    //         return res.status(500).json({ error: 'Internal Server Error' });
+    //     }
+    // }
+
+    async highwayCheck(req, res, next) {
+        const params = req?.query || {};
+
+        const { lat, lng, query } = params;
+
+        if (!lat || !lng)
+            return res.json({
+                result: 0,
+                message: 'No lat, lng provided',
+            });
+
+        const highway = highwayModule?.checker?.highway(lat, lng, [
+            'id',
+            'maxSpeed',
+            'minSpeed',
+            'lanes',
+            'name',
+            'ref',
+            ...(query?.split?.(',') || []),
+        ]);
+
+        return res.json({
+            result: 1,
+            data: highway,
+        });
     }
 
     // [GET] /api/v1/search?lat=10.762622&lng=106.660172&collection=highways

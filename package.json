@@ -1,6 +1,6 @@
 {
-    "name": "node_server",
-    "version": "1.0.7",
+    "name": "midvn_highway_server",
+    "version": "1.0.8",
     "description": "warning highway",
     "main": "index.js",
     "scripts": {
@@ -30,6 +30,7 @@
         "redis": "^4.6.15",
         "socket.io": "^4.7.5",
         "socket.io-client": "^4.7.5",
+        "uuid": "^10.0.0",
         "worker-thread": "^1.1.0"
     },
     "devDependencies": {
