@@ -28,6 +28,7 @@ function isPointInCircle(center, r, point) {
 }
 
 function isPointInBounds(point, bounds) {
+    if (!bounds) return false;
     const x = Number(point[0]),
         y = Number(point[1]);
     let inside = false;

@@ -1,7 +1,7 @@
 const swith = require('../utils/switch');
 const caculate = require('../utils/caculate');
 
-const ways = (highways, ref, name) => {
+const getWays = (highways, ref) => {
     const writeData = [];
     const keyData = {};
     const hData = {};
@@ -27,6 +27,9 @@ const ways = (highways, ref, name) => {
             const returnData = {
                 id: ID,
                 name: highwayName,
+                highway_id: highway?.id,
+                way_id: way?.id,
+                key: `${highway?.id}-${way?.id}`,
 
                 nodes,
                 bounds,
@@ -92,4 +95,4 @@ const ways = (highways, ref, name) => {
     };
 };
 
-module.exports = ways;
+module.exports = getWays;
