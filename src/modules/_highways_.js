@@ -27,8 +27,8 @@ const highwayModule = {
             var data = highway.data;
 
             const returnObj = {
-                netKey: key,
-                isIn: 0,
+                net_key: key,
+                is_in_bounds: false,
             };
             const boundList = netKeys?.[key] || [];
 
@@ -45,16 +45,21 @@ const highwayModule = {
                 );
                 if (isInside) {
                     hReturn = way;
-                    returnObj.isIn = 1;
+                    returnObj.is_in_bounds = true;
                     break;
                 }
             }
 
             if (!hReturn?.id) return returnObj;
 
-            accessKey?.map?.((key) => {
-                returnObj[key] = hReturn?.[key];
-            });
+            // accessKey?.map?.((key) => {
+            //     returnObj[key] = hReturn?.[key];
+            // });
+            returnObj['max_speed'] = hReturn?.['maxSpeed'] ?? null;
+            returnObj['min_speed'] = hReturn?.['minSpeed'] ?? null;
+            returnObj['highway_name'] = hReturn?.['name'];
+            returnObj['ref'] = hReturn?.['id'].split('-')[0];
+            returnObj['lanes'] = hReturn?.['lanes'];
 
             return returnObj;
         },

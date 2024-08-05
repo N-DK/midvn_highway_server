@@ -8,13 +8,8 @@ const { fetchTollBoth } = require('../../utils/fetchTollboth');
 const { isPointInHighway, createPromise } = require('../../utils');
 const fs = require('fs');
 const highwayModule = require('../../modules/_highways_');
-const { Worker } = require('worker_threads');
 const runWorker = require('../../utils/runWorker');
-const {
-    setCachedResults,
-    initData,
-    loadHighways,
-} = require('../../utils/loadingHighWay');
+const { setCachedResults, initData } = require('../../utils/loadingHighWay');
 
 class APIController {
     async index(req, res, next) {
