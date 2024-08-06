@@ -29,8 +29,9 @@ function isPointInCircle(center, r, point) {
 
 function isPointInBounds(point, bounds) {
     if (!bounds) return false;
-    const x = Number(point[0]),
-        y = Number(point[1]);
+    const x = Number(point[0]).toFixed(8);
+    const y = Number(point[1]).toFixed(8);
+
     let inside = false;
     for (let i = 0, j = bounds.length - 1; i < bounds.length; j = i++) {
         const xi = bounds[i][0],
@@ -56,6 +57,7 @@ function isPointInHighway(point, highways) {
                         min_speed: way.minSpeed,
                         highway_name: way.way_name ?? highway.highway_name,
                         key: `${highway.id}-${way.id}`,
+                        length: way.buffer_geometry.length,
                     };
                 }
             }

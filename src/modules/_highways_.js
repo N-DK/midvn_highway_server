@@ -8,6 +8,23 @@ const { loadHighways } = require('../utils/loadingHighWay');
 const getWays = require('./getway');
 
 const highwayModule = {
+    isInside(way, point) {
+        const bounds = way?.bounds;
+
+        const polygon = way?.buffer_geometry;
+
+        const pointLatLng = swith.getLatLng(point);
+        const boundsLatLng = bounds?.map?.((p) => swith.getLatLng(p));
+
+        const isInBounds = geolib.isPointInPolygon(pointLatLng, boundsLatLng);
+
+        if (!isInBounds) return false;
+
+        const polygonLatLng = polygon?.map?.((p) => swith.getLatLng(p));
+        const isInPolygon = geolib.isPointInPolygon(pointLatLng, polygonLatLng);
+
+        return isInPolygon;
+    },
     findObjectByKeyValue: (obj, targetKey, targetValue) => {
         const results = [];
 
@@ -38,6 +55,8 @@ const highwayModule = {
             for (let wayId of boundList) {
                 const way = data?.[wayId];
 
+                console.log(way.name);
+
                 const isInside = isPointInBounds(
                     [lat, lng],
                     way.buffer_geometry,
@@ -51,6 +70,7 @@ const highwayModule = {
             }
 
             if (!hReturn?.id) return returnObj;
+
             returnObj['max_speed'] = hReturn?.['maxSpeed'] ?? null;
             returnObj['min_speed'] = hReturn?.['minSpeed'] ?? null;
             returnObj['highway_name'] = hReturn?.['name'];

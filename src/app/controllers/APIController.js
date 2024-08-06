@@ -67,6 +67,7 @@ class APIController {
                         min_speed: inBounds.min_speed ?? null,
                         is_in_bounds: inBounds.isInBounds,
                         key: `${ref.id}-${inBounds.key}`,
+                        length: inBounds.length,
                     });
                 }
             });
