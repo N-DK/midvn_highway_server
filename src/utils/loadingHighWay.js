@@ -15,7 +15,13 @@ function initData() {
         items
             .filter((item) => item.isDelete !== 1)
             .forEach((item) => {
-                Object.assign(netKeys, item.keyData);
+                for (const [key, value] of Object.entries(item.keyData)) {
+                    if (netKeys[key]) {
+                        netKeys[key] = [...netKeys[key], ...value];
+                    } else {
+                        netKeys[key] = value;
+                    }
+                }
                 for (const [key, value] of Object.entries(item.hData)) {
                     if (value.isDelete !== 1) {
                         data[key] = value;

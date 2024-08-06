@@ -40,8 +40,7 @@ class APIController {
         ]);
 
         return res.json({
-            result: 1,
-            data: highway,
+            ...highway,
         });
     }
 
