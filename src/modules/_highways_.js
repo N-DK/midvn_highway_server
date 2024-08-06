@@ -44,6 +44,7 @@ const highwayModule = {
             var data = highway.data;
 
             const returnObj = {
+                // net_key: key,
                 is_in_bounds: false,
             };
             const boundList = netKeys?.[key] || [];
@@ -55,11 +56,9 @@ const highwayModule = {
             for (let wayId of boundList) {
                 const way = data?.[wayId];
 
-                console.log(way.name);
-
                 const isInside = isPointInBounds(
                     [lat, lng],
-                    way.buffer_geometry,
+                    way?.buffer_geometry,
                 );
 
                 if (isInside) {
@@ -177,7 +176,7 @@ const highwayModule = {
 
     pullData: async (col, region) => {
         try {
-            const data = await fetchData(region);
+            const data = await fetchData(col, region);
             if (data.length > 0) {
                 data.forEach((item, index) => {
                     fs.writeFileSync(
@@ -195,8 +194,6 @@ const highwayModule = {
 
     deleteAndRestoreData: (req, col, isDelete) => {
         try {
-            console.log(req);
-
             const { id } = req.params;
             const data = req.body;
             if (!data) {
@@ -274,7 +271,8 @@ const highwayModule = {
             const updateWayData = (target, data) => {
                 target.maxSpeed = data.max_speed;
                 target.minSpeed = data.min_speed;
-                target.name = data.name;
+                if (data.name && data.name.trim() !== '')
+                    target.way_name = data.name;
             };
 
             switch (keys.length) {

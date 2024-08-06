@@ -29,8 +29,8 @@ function isPointInCircle(center, r, point) {
 
 function isPointInBounds(point, bounds) {
     if (!bounds) return false;
-    const x = Number(point[0]).toFixed(8);
-    const y = Number(point[1]).toFixed(8);
+    const x = Number(point[0]);
+    const y = Number(point[1]);
 
     let inside = false;
     for (let i = 0, j = bounds.length - 1; i < bounds.length; j = i++) {

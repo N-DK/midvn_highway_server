@@ -1,11 +1,11 @@
 const swith = require('../utils/switch');
 const caculate = require('../utils/caculate');
 
-const getWays = (highways, ref) => {
+const getWays = (highways, ref, type) => {
     const writeData = [];
     const keyData = {};
     const hData = {};
-    let ID = `${ref}-${0}`;
+    let ID = `${type}-${ref}-${0}`;
     let nodeCount = 0;
     let countD500 = 0;
 
@@ -85,7 +85,7 @@ const getWays = (highways, ref) => {
             cacular(nodes);
             cacular(buffer_geometry);
 
-            ID = `${ref}-${Number(ID.split('-')[1]) + 1}`;
+            ID = `${type}-${ref}-${Number(ID.split('-')[2]) + 1}`;
         });
     });
 

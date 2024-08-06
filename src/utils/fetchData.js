@@ -4,10 +4,10 @@ const getWays = require('../modules/getway');
 const vietnameseRegex =
     /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
 
-const fetchData = async (type) => {
+const fetchData = async (type, region) => {
     try {
         console.log('LOADING...');
-        const res = await axios.get(type);
+        const res = await axios.get(region);
         console.log('LOADED');
         const highwayData = res?.data?.elements.map((way) => ({
             id: way.id,
@@ -112,8 +112,8 @@ const fetchData = async (type) => {
         return groupedHighwaysArray.map((ref) => ({
             id: ref.id,
             ref: ref.ref,
-            hData: getWays(ref.highways, ref.ref).hData,
-            keyData: getWays(ref.highways, ref.ref).keyData,
+            hData: getWays(ref.highways, ref.ref, type).hData,
+            keyData: getWays(ref.highways, ref.ref, type).keyData,
             highways: ref.highways.map((highway) => ({
                 id: highway.id,
                 highway_name: highway.highway_name,
