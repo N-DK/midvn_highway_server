@@ -326,6 +326,18 @@ class APIController {
         }
     }
 
+    // [GET] /api/v1/highways/zoom?size=20
+    async zoomHighways(req, res, next) {
+        try {
+            const { size } = req.query;
+            console.log(size);
+            highwayModule.zoomBufferGeometry('highways', size);
+            return res.json({ message: 'Success' });
+        } catch (error) {
+            // console.error(error);
+        }
+    }
+
     // [GET] /api/v1/load-test
     async loadTest(req, res, next) {
         autocannon(CONFIG_LOADTEST, (err, result) => {

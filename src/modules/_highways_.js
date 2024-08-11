@@ -1,5 +1,5 @@
 const swith = require('../utils/switch');
-const { isPointInBounds, createPromise } = require('../utils');
+const { isPointInBounds, createPromise, bufferPolyline } = require('../utils');
 const turf = require('@turf/turf');
 const path = require('path');
 const fs = require('fs');
@@ -157,8 +157,8 @@ const highwayModule = {
                 const newDoc = {
                     id: data.id,
                     ref: data.ref,
-                    hData: getWays(data.highways, data.ref).hData,
-                    keyData: getWays(data.highways, data.ref).keyData,
+                    hData: getWays(data.highways, data.ref, col).hData,
+                    keyData: getWays(data.highways, data.ref, col).keyData,
                     highways: data.highways,
                 };
 
@@ -179,16 +179,43 @@ const highwayModule = {
             const data = await fetchData(col, region);
             if (data.length > 0) {
                 data.forEach((item, index) => {
-                    fs.writeFileSync(
-                        `./src/common/${col}/${col}-${index}.json`,
-                        JSON.stringify(item),
-                    );
+                    const path = `./src/common/${col}/${col}-${index}.json`;
+                    fs.writeFileSync(path, JSON.stringify(item));
                 });
 
                 return { success: true, data: { message: 'success' } };
             }
         } catch (error) {
             console.error(error);
+        }
+    },
+
+    zoomBufferGeometry: (col, size) => {
+        const length = fs.readdirSync(`./src/common/${col}`).length;
+
+        for (let i = 0; i < length; i++) {
+            try {
+                const filePath = `./src/common/${col}/${col}-${i}.json`;
+                let data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                Object.keys(data.hData).forEach((key) => {
+                    const nodes = data.hData[key].nodes;
+                    data.hData[key].buffer_geometry = bufferPolyline(
+                        nodes,
+                        size,
+                    );
+                });
+
+                data.highways.forEach((highway) => {
+                    highway.ways.forEach((way) => {
+                        way.buffer_geometry = bufferPolyline(way.nodes, size);
+                    });
+                });
+
+                fs.writeFileSync(filePath, JSON.stringify(data));
+            } catch (error) {
+                console.log(error);
+            }
         }
     },
 

@@ -7,6 +7,7 @@ router.get('/search', api.search);
 router.post('/highways', api.insertHighway);
 router.post('/trunks', api.insertTrunk);
 router.get('/highways/pull', api.pullHighways);
+router.get('/highways/zoom', api.zoomHighways);
 router.get('/tollboths/pull', api.pullTollBoths);
 router.get('/trunks/pull', api.pullTrunks);
 router.get('/highways/get-all', api.getAllHighways);

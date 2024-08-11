@@ -1,4 +1,5 @@
 const fs = require('fs');
+const turf = require('@turf/turf');
 const path = require('path');
 
 const haversineDistance = (lat1, lon1, lat2, lon2) => {
@@ -82,10 +83,21 @@ function createPromise(col, req) {
     return results;
 }
 
+function bufferPolyline(nodes, radius) {
+    const line = turf.lineString(nodes.map(([lng, lat]) => [lat, lng]));
+    const bufferedLine = turf.buffer(line, radius, { units: 'meters' });
+    const bufferedLineCoords = bufferedLine.geometry.coordinates[0].map(
+        ([lat, lng]) => [lng, lat],
+    );
+
+    return bufferedLineCoords;
+}
+
 module.exports = {
     haversineDistance,
     isPointInCircle,
     isPointInBounds,
     isPointInHighway,
     createPromise,
+    bufferPolyline,
 };
