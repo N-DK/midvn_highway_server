@@ -75,7 +75,7 @@ connectDB().then(async () => {
                         (id) => id === `${item?.id}-${value?.key}`,
                     )
                 ) {
-                    // console.log(item?.id, value?.key);
+                    console.log(item?.id, value?.key);
 
                     delete item.hData[key];
                 }
@@ -89,7 +89,7 @@ connectDB().then(async () => {
             });
 
             // Ghi lại nội dung đã sửa vào file
-            fs.writeFileSync(filePath, JSON.stringify(item, null, 2));
+            // fs.writeFileSync(filePath, JSON.stringify(item, null, 2));
         }
     };
 
