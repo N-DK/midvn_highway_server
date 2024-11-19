@@ -2,30 +2,31 @@ const { default: axios } = require('axios');
 const turf = require('@turf/turf');
 const getWays = require('../modules/getway');
 const vietnameseRegex =
-    /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
+    /[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
 
-const fetchData = async (type, region) => {
+const fetchData = async (type, region, url) => {
     try {
         console.log('LOADING...');
-        const res = await axios.get(region);
+        const res = await axios.get(region ? region : url);
         console.log('LOADED');
         const highwayData = res?.data?.elements.map((way) => ({
             id: way.id,
-            highway_name: way.tags.name,
-            ref: way.tags.ref,
+            highway_name: way?.tags?.name ?? 'N/A',
+            ref: way.tags.ref ?? 'N/A',
             nodes: way.geometry.map((node) => [node.lat, node.lon]),
             bounds: [
                 [way.bounds.minlat, way.bounds.minlon],
                 [way.bounds.maxlat, way.bounds.maxlon],
             ],
-            maxSpeed: way.tags?.maxspeed,
-            minSpeed: way.tags?.minspeed,
-            lanes: way.tags?.lanes,
+            maxSpeed: way.tags?.maxspeed ?? 0,
+            minSpeed: way.tags?.minspeed ?? 0,
+            lanes: way.tags?.lanes ?? 0,
         }));
 
         const vietNameHighways = highwayData.filter((highway) =>
             vietnameseRegex.test(highway.highway_name),
         );
+
         const groupedHighwayData = vietNameHighways.reduce((acc, way) => {
             const {
                 ref,
@@ -69,7 +70,8 @@ const fetchData = async (type, region) => {
                 maxSpeed: maxSpeed,
                 minSpeed: minSpeed,
                 lanes: lanes,
-                buffer_geometry: bufferedLineCoords,
+                buffer_geometry:
+                    type === 'residential' ? [] : bufferedLineCoords,
             });
 
             return acc;
@@ -109,6 +111,11 @@ const fetchData = async (type, region) => {
                 ),
             }),
         );
+
+        if (type === 'residential') {
+            return groupedHighwaysArray;
+        }
+
         return groupedHighwaysArray.map((ref) => ({
             id: ref.id,
             ref: ref.ref,
@@ -130,6 +137,7 @@ const fetchData = async (type, region) => {
         }));
     } catch (error) {
         console.log(error);
+        throw new Error("Can't fetch data");
     }
 };
 

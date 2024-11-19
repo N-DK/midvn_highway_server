@@ -1,10 +1,17 @@
 const { Worker } = require('worker_threads');
 const { setCachedResults, initData } = require('./loadingHighWay');
 
-function runWorker(task, req, col, region = '', deleteFlag = null) {
+function runWorker(
+    task,
+    req,
+    col,
+    region = '',
+    deleteFlag = null,
+    payloads = null,
+) {
     return new Promise((resolve, reject) => {
         const worker = new Worker('./src/modules/workerHandler.js', {
-            workerData: { task, req, col, region, deleteFlag },
+            workerData: { task, req, col, region, deleteFlag, payloads },
         });
 
         worker.on('message', (message) => {

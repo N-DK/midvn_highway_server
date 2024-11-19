@@ -7,6 +7,163 @@ const fetchData = require('../utils/fetchData');
 const { loadHighways } = require('../utils/loadingHighWay');
 const getWays = require('./getway');
 
+const vehicleData = {
+    3: {
+        name: 'Xe ô tô con',
+        type: 11,
+        maxSpeed: 90,
+        minSpeed: 80,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1717273260256,
+        endDate: 1721358556447,
+    },
+    4: {
+        name: 'Xe ô tô chở người đến 30 chỗ (trừ xe buýt)',
+        type: 12,
+        maxSpeed: 90,
+        minSpeed: 80,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1717273373286,
+        endDate: 1721358594242,
+    },
+    6: {
+        name: 'Ô tô tải có trọng tải nhỏ hơn hoặc bằng 3,5 tấn',
+        type: 10,
+        maxSpeed: 90,
+        minSpeed: 80,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1717273489882,
+        endDate: 1721358651346,
+    },
+    15: {
+        name: 'Xe ô tô chở người trên 30 chỗ (trừ xe buýt)',
+        type: 12,
+        maxSpeed: 80,
+        minSpeed: 70,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358682255,
+        endDate: null,
+    },
+    17: {
+        name: 'Ô tô tải có trọng tải trên 3,5 tấn (trừ ô tô xi téc)',
+        type: 10,
+        maxSpeed: 80,
+        minSpeed: 70,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358702555,
+        endDate: null,
+    },
+    19: {
+        name: 'Ô tô buýt',
+        type: 12,
+        maxSpeed: 70,
+        minSpeed: 60,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358729061,
+        endDate: null,
+    },
+    21: {
+        name: 'Ô tô đầu kéo kéo sơ mi rơ moóc',
+        type: 8,
+        maxSpeed: 70,
+        minSpeed: 60,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358752617,
+        endDate: 1724923649269,
+    },
+    23: {
+        name: 'Xe mô tô',
+        type: 13,
+        maxSpeed: 70,
+        minSpeed: 60,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358774968,
+        endDate: null,
+    },
+    25: {
+        name: 'Ô tô chuyên dùng (trừ ô tô trộn vữa, ô tô trộn bê tông)',
+        type: 10,
+        maxSpeed: 70,
+        minSpeed: 60,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358797030,
+        endDate: null,
+    },
+    27: {
+        name: 'Ô tô kéo rơ moóc',
+        type: 8,
+        maxSpeed: 60,
+        minSpeed: 50,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358819649,
+        endDate: 1724923657754,
+    },
+    29: {
+        name: 'Ô tô kéo xe khác',
+        type: 10,
+        maxSpeed: 60,
+        minSpeed: 50,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358837561,
+        endDate: null,
+    },
+    31: {
+        name: 'Ô tô trộn vữa',
+        type: 10,
+        maxSpeed: 60,
+        minSpeed: 50,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358855868,
+        endDate: null,
+    },
+    33: {
+        name: 'Ô tô trộn bê tông',
+        type: 15,
+        maxSpeed: 60,
+        minSpeed: 50,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358873578,
+        endDate: 1730167339181,
+    },
+    35: {
+        name: 'Ô tô xi téc',
+        type: 10,
+        maxSpeed: 60,
+        minSpeed: 50,
+        isActive: 1,
+        isDelete: 0,
+        isPremium: 0,
+        startDate: 1721358895665,
+        endDate: null,
+    },
+};
+
 const highwayModule = {
     isInside(way, point) {
         const bounds = way?.bounds;
@@ -43,9 +200,12 @@ const highwayModule = {
             var netKeys = highway.netKeys;
             var data = highway.data;
 
+            // console.log(netKeys?.[key]);
+
             const returnObj = {
                 // net_key: key,
                 is_in_bounds: false,
+                result: 0,
             };
             const boundList = netKeys?.[key] || [];
 
@@ -56,6 +216,8 @@ const highwayModule = {
             for (let wayId of boundList) {
                 const way = data?.[wayId];
 
+                // console.log(way, wayId);
+
                 const isInside = isPointInBounds(
                     [lat, lng],
                     way?.buffer_geometry,
@@ -64,6 +226,9 @@ const highwayModule = {
                 if (isInside) {
                     hReturn = way;
                     returnObj.is_in_bounds = true;
+                    returnObj['result'] =
+                        wayId?.split('-')[0] === 'trunks' ? 2 : 1;
+
                     break;
                 }
             }
@@ -72,7 +237,6 @@ const highwayModule = {
 
             returnObj['max_speed'] = hReturn?.['maxSpeed'] ?? null;
             returnObj['min_speed'] = hReturn?.['minSpeed'] ?? null;
-            returnObj['highway_name'] = hReturn?.['name'];
 
             return returnObj;
         },
@@ -84,75 +248,109 @@ const highwayModule = {
                 return { success: false, data: { message: 'Missing data' } };
             }
 
-            const nodes = data.highways[0].ways[0].nodes;
-            let maxLat = -Infinity,
-                minLat = Infinity,
-                maxLng = -Infinity,
-                minLng = Infinity;
-
-            nodes.forEach(([lng, lat]) => {
-                if (lat > maxLat) maxLat = lat;
-                if (lat < minLat) minLat = lat;
-                if (lng > maxLng) maxLng = lng;
-                if (lng < minLng) minLng = lng;
-            });
-
-            data.highways[0].ways[0].bounds = [
-                [minLat, minLng],
-                [maxLat, maxLng],
-            ];
-
-            const line = turf.lineString(nodes.map(([lng, lat]) => [lat, lng]));
-            const bufferedLine = turf.buffer(line, 15, { units: 'meters' });
-            const bufferedLineCoords = bufferedLine.geometry.coordinates[0].map(
-                ([lat, lng]) => [lng, lat],
-            );
-            data.highways[0].ways[0].buffer_geometry = bufferedLineCoords;
-
             const collections = createPromise(col);
 
             const existingRef = collections.find((ref) => ref.ref === data.ref);
 
-            if (existingRef) {
-                const highwayIndex = existingRef.highways.findIndex(
-                    (item) =>
-                        item.highway_name === data.highways[0].highway_name,
-                );
+            // Iterate over highways
+            data.highways.forEach((highway) => {
+                highway.ways.forEach((way) => {
+                    const nodes = way.nodes;
+                    let maxLat = -Infinity,
+                        minLat = Infinity,
+                        maxLng = -Infinity,
+                        minLng = Infinity;
 
-                if (highwayIndex >= 0) {
-                    const existingWays =
-                        existingRef.highways[highwayIndex].ways;
-                    data.highways[0].ways[0].id =
-                        existingWays[existingWays.length - 1].id + 1;
-                    existingRef.highways[highwayIndex].ways.push(
-                        data.highways[0].ways[0],
+                    // Calculate bounds for each way
+                    nodes.forEach(([lng, lat]) => {
+                        if (lat > maxLat) maxLat = lat;
+                        if (lat < minLat) minLat = lat;
+                        if (lng > maxLng) maxLng = lng;
+                        if (lng < minLng) minLng = lng;
+                    });
+
+                    way.bounds = [
+                        [minLat, minLng],
+                        [maxLat, maxLng],
+                    ];
+
+                    // Create buffered geometry for each way
+                    const line = turf.lineString(
+                        nodes.map(([lng, lat]) => [lat, lng]),
                     );
-                } else {
-                    data.highways[0].id =
-                        existingRef.highways[existingRef.highways.length - 1]
-                            .id + 1;
-                    data.highways[0].ways[0].id = 1;
-                    existingRef.highways.push(data.highways[0]);
-                }
+                    const bufferedLine = turf.buffer(line, 15, {
+                        units: 'meters',
+                    });
+                    const bufferedLineCoords =
+                        bufferedLine.geometry.coordinates[0].map(
+                            ([lat, lng]) => [lng, lat],
+                        );
+                    way.buffer_geometry = bufferedLineCoords;
+                });
+            });
+
+            if (existingRef) {
+                // Update existing reference
+                data.highways.forEach((newHighway) => {
+                    const highwayIndex = existingRef.highways.findIndex(
+                        (item) => item.highway_name === newHighway.highway_name,
+                    );
+
+                    if (highwayIndex >= 0) {
+                        const existingWays =
+                            existingRef.highways[highwayIndex].ways;
+
+                        newHighway.ways.forEach((newWay) => {
+                            newWay.id =
+                                existingWays.length > 0
+                                    ? existingWays[existingWays.length - 1].id +
+                                      1
+                                    : 0;
+                            existingWays.push(newWay);
+                        });
+                    } else {
+                        newHighway.id =
+                            existingRef.highways.length > 0
+                                ? existingRef.highways[
+                                      existingRef.highways.length - 1
+                                  ].id + 1
+                                : 0;
+
+                        newHighway.ways.forEach((newWay, index) => {
+                            newWay.id = index;
+                        });
+
+                        existingRef.highways.push(newHighway);
+                    }
+                });
 
                 const index = collections.indexOf(existingRef);
 
                 const newDoc = {
                     ...existingRef,
-                    hData: getWays(existingRef.highways, existingRef.ref).hData,
-                    keyData: getWays(existingRef.highways, existingRef.ref)
+                    hData: getWays(existingRef.highways, existingRef.ref, col)
+                        .hData,
+                    keyData: getWays(existingRef.highways, existingRef.ref, col)
                         .keyData,
                     highways: existingRef.highways,
                 };
+
                 fs.writeFileSync(
                     `./src/common/${col}/${col}-${index}.json`,
                     JSON.stringify(newDoc),
                 );
+
                 return { success: true, data: collections[index] };
             } else {
+                // Create new reference
                 data.id = collections.length;
-                data.highways[0].id = 0;
-                data.highways[0].ways[0].id = 0;
+
+                data.highways.forEach((highway, highwayIndex) => {
+                    highway.id = highwayIndex;
+                    highway.ways.forEach((way, wayIndex) => {
+                        way.id = wayIndex;
+                    });
+                });
 
                 const newDoc = {
                     id: data.id,
@@ -166,6 +364,7 @@ const highwayModule = {
                     `./src/common/${col}/${col}-${collections.length}.json`,
                     JSON.stringify(newDoc),
                 );
+
                 return { success: true, data: newDoc };
             }
         } catch (error) {
@@ -177,7 +376,7 @@ const highwayModule = {
     pullData: async (col, region) => {
         try {
             const data = await fetchData(col, region);
-            if (data.length > 0) {
+            if (data?.length > 0) {
                 data.forEach((item, index) => {
                     const path = `./src/common/${col}/${col}-${index}.json`;
                     fs.writeFileSync(path, JSON.stringify(item));
@@ -239,7 +438,7 @@ const highwayModule = {
                 Object.keys(highway.hData).forEach((key) => {
                     highway.hData[key].isDelete = isDelete;
                 });
-            } else {
+            } else if (data?.indexsWay?.length === 0) {
                 data?.indexs?.forEach((index) => {
                     highway.highways[index].isDelete = isDelete;
                 });
@@ -260,6 +459,25 @@ const highwayModule = {
                     highway.highways.every((item) => item.isDelete === isDelete)
                 )
                     highway.isDelete = isDelete;
+            } else {
+                data?.indexsWay?.forEach((index) => {
+                    highway.highways[data.indexs[0]].ways[index].isDelete =
+                        isDelete;
+                });
+
+                const hDataObjects = highwayModule.findObjectByKeyValue(
+                    highway.hData,
+                    'way_id',
+                    data?.indexsWay?.[0],
+                );
+
+                for (const hDataObject of hDataObjects) {
+                    const hDataKey = Object.keys(hDataObject)[0];
+                    if (hDataKey) {
+                        hDataObject[hDataKey].isDelete = isDelete;
+                        highway.hData[hDataKey] = hDataObject[hDataKey];
+                    }
+                }
             }
             fs.writeFileSync(filePath, JSON.stringify(highway));
             return { success: true, data: highway };
