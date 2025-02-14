@@ -1,6 +1,6 @@
 {
     "name": "midvn_highway_server",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "description": "warning highway",
     "main": "index.js",
     "scripts": {

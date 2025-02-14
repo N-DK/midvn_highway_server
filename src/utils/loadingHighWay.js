@@ -6,7 +6,7 @@ function initData() {
     console.time('Loading data');
 
     const highways = createPromise('highways');
-    const trunks = createPromise('trunks');
+    // const trunks = createPromise('trunks');
 
     let netKeys = {};
     let data = {};
@@ -40,7 +40,7 @@ function initData() {
     };
 
     processItems(highways);
-    processItems(trunks);
+    // processItems(trunks);
 
     console.timeEnd('Loading data');
 
