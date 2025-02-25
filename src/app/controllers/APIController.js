@@ -10,172 +10,178 @@ const { isPointInHighway, createPromise } = require('../../utils');
 const fs = require('fs');
 const highwayModule = require('../../modules/_highways_');
 const runWorker = require('../../utils/runWorker');
-const { setCachedResults, initData } = require('../../utils/loadingHighWay');
+const {
+    setCachedResults,
+    initData,
+    loadHighways,
+} = require('../../utils/loadingHighWay');
 const { default: axios } = require('axios');
 const fetchDataRelation = require('../../utils/fetchDataRelation');
+const redisModel = require('../../modules/redis.model');
+const saveToRedis = require('../../utils/saveToRedis');
 
 // Khởi tạo mảng Quốc lộ với các tên đặc biệt
-const routes = [
-    'Quốc lộ 1A',
-    'Quốc lộ 1B',
-    'Quốc lộ 1C',
-    'Quốc lộ 1D',
-    'Quốc lộ 1K',
-    'Quốc lộ 2A',
-    'Quốc lộ 2B',
-    'Quốc lộ 2C',
-    'Quốc lộ 2D',
-    'Quốc lộ 3A',
-    'Quốc lộ 3B',
-    'Quốc lộ 3C',
-    'Quốc lộ 3E',
-    'Quốc lộ 4A',
-    'Quốc lộ 4B',
-    'Quốc lộ 4C',
-    'Quốc lộ 4D',
-    'Quốc lộ 4H',
-    'Quốc lộ 4E',
-    'Quốc lộ 4G',
-    'Quốc lộ 5',
-    'Quốc lộ 5C',
-    'Quốc lộ 6A',
-    'Quốc lộ 6B',
-    'Quốc lộ 7A',
-    'Quốc lộ 7B',
-    'Quốc lộ 8',
-    'Quốc lộ 8B',
-    'Quốc lộ 8C',
-    'Quốc lộ 9A',
-    'Quốc lộ 9B',
-    'Quốc lộ 9C',
-    'Quốc lộ 9D',
-    'Quốc lộ 9E',
-    'Quốc lộ 9G',
-    'Quốc lộ 10',
-    'Quốc lộ 12',
-    'Quốc lộ 12A',
-    'Quốc lộ 12B',
-    'Quốc lộ 12C',
-    'Quốc lộ 13',
-    'Quốc lộ 14A',
-    'Quốc lộ 14B',
-    'Quốc lộ 14C',
-    'Quốc lộ 14D',
-    'Quốc lộ 14E',
-    'Quốc lộ 14G',
-    'Quốc lộ 14H',
-    'Quốc lộ 15',
-    'Quốc lộ 15A',
-    'Quốc lộ 15B',
-    'Quốc lộ 15C',
-    'Quốc lộ 15D',
-    'Quốc lộ 16',
-    'Quốc lộ 17',
-    'Quốc lộ 17B',
-    'Quốc lộ 18',
-    'Quốc lộ 18C',
-    'Quốc lộ 19A',
-    'Quốc lộ 19B',
-    'Quốc lộ 19C',
-    'Quốc lộ 20',
-    'Quốc lộ 21A',
-    'Quốc lộ 21B',
-    'Quốc lộ 21C',
-    'Quốc lộ 22A',
-    'Quốc lộ 22B',
-    'Quốc lộ 23',
-    'Quốc lộ 24A',
-    'Quốc lộ 24B',
-    'Quốc lộ 24C',
-    'Quốc lộ 25',
-    'Quốc lộ 26A',
-    'Quốc lộ 26B',
-    'Quốc lộ 27A',
-    'Quốc lộ 27B',
-    'Quốc lộ 27C',
-    'Quốc lộ 28A',
-    'Quốc lộ 28B',
-    'Quốc lộ 29',
-    'Quốc lộ 30',
-    'Quốc lộ 31',
-    'Quốc lộ 32',
-    'Quốc lộ 32B',
-    'Quốc lộ 32C',
-    'Quốc lộ 34',
-    'Quốc lộ 35',
-    'Quốc lộ 37A',
-    'Quốc lộ 37B',
-    'Quốc lộ 37C',
-    'Quốc lộ 38A',
-    'Quốc lộ 38B',
-    'Quốc lộ 39A',
-    'Quốc lộ 39B',
-    'Quốc lộ 40A',
-    'Quốc lộ 40B',
-    'Quốc lộ 43',
-    'Quốc lộ 45',
-    'Quốc lộ 46A',
-    'Quốc lộ 46B',
-    'Quốc lộ 46C',
-    'Quốc lộ 47',
-    'Quốc lộ 47B',
-    'Quốc lộ 47C',
-    'Quốc lộ 48',
-    'Quốc lộ 48B',
-    'Quốc lộ 48C',
-    'Quốc lộ 48D',
-    'Quốc lộ 48E',
-    'Quốc lộ 49A',
-    'Quốc lộ 49B',
-    'Quốc lộ 49C',
-    'Quốc lộ 50',
-    'Quốc lộ 51',
-    'Quốc lộ 52',
-    'Quốc lộ 53',
-    'Quốc lộ 54',
-    'Quốc lộ 55A',
-    'Quốc lộ 55B',
-    'Quốc lộ 56',
-    'Quốc lộ 56B',
-    'Quốc lộ 57A',
-    'Quốc lộ 57B',
-    'Quốc lộ 57C',
-    'Quốc lộ 60',
-    'Quốc lộ 61A',
-    'Quốc lộ 61B',
-    'Quốc lộ 61C',
-    'Quốc lộ 62',
-    'Quốc lộ 63',
-    'Quốc lộ 70A',
-    'Quốc lộ 70B',
-    'Quốc lộ 71',
-    'Quốc lộ 80',
-    'Quốc lộ 91A',
-    'Quốc lộ 91B',
-    'Quốc lộ 91C',
-    'Quốc lộ 217',
-    'Quốc lộ 217B',
-    'Quốc lộ 279',
-    'Quốc lộ 279D',
-    'Quốc lộ 280',
-    'Quốc lộ 281',
-    'Quốc lộ N1',
-    'Quốc lộ N2',
-    'Quốc lộ Quản Lộ – Phụng Hiệp',
-    'Quốc lộ 7C',
-];
+// const routes = [
+//     'Quốc lộ 1A',
+//     'Quốc lộ 1B',
+//     'Quốc lộ 1C',
+//     'Quốc lộ 1D',
+//     'Quốc lộ 1K',
+//     'Quốc lộ 2A',
+//     'Quốc lộ 2B',
+//     'Quốc lộ 2C',
+//     'Quốc lộ 2D',
+//     'Quốc lộ 3A',
+//     'Quốc lộ 3B',
+//     'Quốc lộ 3C',
+//     'Quốc lộ 3E',
+//     'Quốc lộ 4A',
+//     'Quốc lộ 4B',
+//     'Quốc lộ 4C',
+//     'Quốc lộ 4D',
+//     'Quốc lộ 4H',
+//     'Quốc lộ 4E',
+//     'Quốc lộ 4G',
+//     'Quốc lộ 5',
+//     'Quốc lộ 5C',
+//     'Quốc lộ 6A',
+//     'Quốc lộ 6B',
+//     'Quốc lộ 7A',
+//     'Quốc lộ 7B',
+//     'Quốc lộ 8',
+//     'Quốc lộ 8B',
+//     'Quốc lộ 8C',
+//     'Quốc lộ 9A',
+//     'Quốc lộ 9B',
+//     'Quốc lộ 9C',
+//     'Quốc lộ 9D',
+//     'Quốc lộ 9E',
+//     'Quốc lộ 9G',
+//     'Quốc lộ 10',
+//     'Quốc lộ 12',
+//     'Quốc lộ 12A',
+//     'Quốc lộ 12B',
+//     'Quốc lộ 12C',
+//     'Quốc lộ 13',
+//     'Quốc lộ 14A',
+//     'Quốc lộ 14B',
+//     'Quốc lộ 14C',
+//     'Quốc lộ 14D',
+//     'Quốc lộ 14E',
+//     'Quốc lộ 14G',
+//     'Quốc lộ 14H',
+//     'Quốc lộ 15',
+//     'Quốc lộ 15A',
+//     'Quốc lộ 15B',
+//     'Quốc lộ 15C',
+//     'Quốc lộ 15D',
+//     'Quốc lộ 16',
+//     'Quốc lộ 17',
+//     'Quốc lộ 17B',
+//     'Quốc lộ 18',
+//     'Quốc lộ 18C',
+//     'Quốc lộ 19A',
+//     'Quốc lộ 19B',
+//     'Quốc lộ 19C',
+//     'Quốc lộ 20',
+//     'Quốc lộ 21A',
+//     'Quốc lộ 21B',
+//     'Quốc lộ 21C',
+//     'Quốc lộ 22A',
+//     'Quốc lộ 22B',
+//     'Quốc lộ 23',
+//     'Quốc lộ 24A',
+//     'Quốc lộ 24B',
+//     'Quốc lộ 24C',
+//     'Quốc lộ 25',
+//     'Quốc lộ 26A',
+//     'Quốc lộ 26B',
+//     'Quốc lộ 27A',
+//     'Quốc lộ 27B',
+//     'Quốc lộ 27C',
+//     'Quốc lộ 28A',
+//     'Quốc lộ 28B',
+//     'Quốc lộ 29',
+//     'Quốc lộ 30',
+//     'Quốc lộ 31',
+//     'Quốc lộ 32',
+//     'Quốc lộ 32B',
+//     'Quốc lộ 32C',
+//     'Quốc lộ 34',
+//     'Quốc lộ 35',
+//     'Quốc lộ 37A',
+//     'Quốc lộ 37B',
+//     'Quốc lộ 37C',
+//     'Quốc lộ 38A',
+//     'Quốc lộ 38B',
+//     'Quốc lộ 39A',
+//     'Quốc lộ 39B',
+//     'Quốc lộ 40A',
+//     'Quốc lộ 40B',
+//     'Quốc lộ 43',
+//     'Quốc lộ 45',
+//     'Quốc lộ 46A',
+//     'Quốc lộ 46B',
+//     'Quốc lộ 46C',
+//     'Quốc lộ 47',
+//     'Quốc lộ 47B',
+//     'Quốc lộ 47C',
+//     'Quốc lộ 48',
+//     'Quốc lộ 48B',
+//     'Quốc lộ 48C',
+//     'Quốc lộ 48D',
+//     'Quốc lộ 48E',
+//     'Quốc lộ 49A',
+//     'Quốc lộ 49B',
+//     'Quốc lộ 49C',
+//     'Quốc lộ 50',
+//     'Quốc lộ 51',
+//     'Quốc lộ 52',
+//     'Quốc lộ 53',
+//     'Quốc lộ 54',
+//     'Quốc lộ 55A',
+//     'Quốc lộ 55B',
+//     'Quốc lộ 56',
+//     'Quốc lộ 56B',
+//     'Quốc lộ 57A',
+//     'Quốc lộ 57B',
+//     'Quốc lộ 57C',
+//     'Quốc lộ 60',
+//     'Quốc lộ 61A',
+//     'Quốc lộ 61B',
+//     'Quốc lộ 61C',
+//     'Quốc lộ 62',
+//     'Quốc lộ 63',
+//     'Quốc lộ 70A',
+//     'Quốc lộ 70B',
+//     'Quốc lộ 71',
+//     'Quốc lộ 80',
+//     'Quốc lộ 91A',
+//     'Quốc lộ 91B',
+//     'Quốc lộ 91C',
+//     'Quốc lộ 217',
+//     'Quốc lộ 217B',
+//     'Quốc lộ 279',
+//     'Quốc lộ 279D',
+//     'Quốc lộ 280',
+//     'Quốc lộ 281',
+//     'Quốc lộ N1',
+//     'Quốc lộ N2',
+//     'Quốc lộ Quản Lộ – Phụng Hiệp',
+//     'Quốc lộ 7C',
+// ];
 
 // Thêm các tuyến đường theo dạng "Quốc lộ n"
-for (let i = 100; i > 0; i--) {
-    if (routes.indexOf(`Quốc lộ ${i}`) === -1) {
-        routes.push(`Quốc lộ ${i}`);
-    }
-}
+// for (let i = 100; i > 0; i--) {
+//     if (routes.indexOf(`Quốc lộ ${i}`) === -1) {
+//         routes.push(`Quốc lộ ${i}`);
+//     }
+// }
 
 // console.log(routes.findIndex((route) => route === 'Quốc lộ 2'));
-const refs = ['QL.24'];
+// const refs = ['QL.24'];
 
-console.log(refs.length);
+// console.log(refs.length);
 
 class APIController {
     async index(req, res, next) {
@@ -193,18 +199,7 @@ class APIController {
                 result: 0,
                 message: 'No lat, lng provided',
             });
-
-        const highway = highwayModule?.checker?.highway(lat, lng, [
-            'id',
-            'maxSpeed',
-            'minSpeed',
-            'lanes',
-            'name',
-            'ref',
-            'key',
-            ...(query?.split?.(',') || []),
-        ]);
-
+        const highway = await highwayModule?.checker?.highway(lat, lng);
         return res.json({
             ...highway,
         });
@@ -309,6 +304,7 @@ class APIController {
         try {
             await runWorker('pullData', {}, 'highways', VN_REGION);
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             res.status(200).json({ message: 'success' });
         } catch (error) {
             console.log(error);
@@ -321,6 +317,7 @@ class APIController {
         try {
             await runWorker('pullData', {}, 'trunks', VN_REGION_TRUNK);
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             res.status(200).json({ message: 'success' });
         } catch (error) {
             console.log(error);
@@ -338,6 +335,7 @@ class APIController {
                 VN_REGION_RESIDENTIAL,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             res.status(200).json({ message: 'success' });
         } catch (error) {
             console.log(error);
@@ -355,6 +353,7 @@ class APIController {
                 'highways',
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             console.log(error);
@@ -372,6 +371,7 @@ class APIController {
                 'trunks',
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             console.log(error);
@@ -391,6 +391,7 @@ class APIController {
                 1,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -409,6 +410,7 @@ class APIController {
                 1,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -427,6 +429,7 @@ class APIController {
                 1,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -443,6 +446,7 @@ class APIController {
                 'highways',
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -459,6 +463,7 @@ class APIController {
                 'trunks',
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -477,6 +482,7 @@ class APIController {
                 0,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -495,6 +501,7 @@ class APIController {
                 0,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -513,6 +520,7 @@ class APIController {
                 0,
             );
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -612,7 +620,18 @@ class APIController {
                 );
             }
             setCachedResults(initData());
+            await redisModel.set('update_highway', '1', 'API', Date.now());
             return res.status(200).json({ message: 'success', result });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    // [POST] /api/v1/highways/save-redis
+    async saveHighwaysToRedis(req, res, next) {
+        try {
+            await saveToRedis();
+            return res.status(200).json({ message: 'success' });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

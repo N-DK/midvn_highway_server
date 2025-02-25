@@ -1,9 +1,11 @@
 const { createPromise } = require('.');
+const redisModel = require('../modules/redis.model');
 
 let cachedResults = null;
+let cachedRedis = null;
 
-function initData() {
-    console.time('Loading data');
+async function initData() {
+    console.time('LOADING DATA');
 
     const highways = createPromise('highways');
     // const trunks = createPromise('trunks');
@@ -42,27 +44,55 @@ function initData() {
     processItems(highways);
     // processItems(trunks);
 
-    console.timeEnd('Loading data');
+    console.timeEnd('LOADING DATA');
 
     return { netKeys, data };
 }
 
-function loadHighways() {
+async function initDataRedis() {
+    console.time('LOADING REDIS');
+    const { data: dataRedis } = await redisModel.hGetAll(
+        'highways',
+        'asd',
+        Date.now(),
+    );
+    console.timeEnd('LOADING REDIS');
+    return dataRedis;
+}
+
+async function loadHighways() {
     if (cachedResults) {
         return cachedResults;
     }
 
-    cachedResults = initData();
+    cachedResults = await initData();
 
     return cachedResults;
+}
+
+async function loadingHighWayRedis() {
+    if (cachedRedis) {
+        return cachedRedis;
+    }
+
+    cachedRedis = await initDataRedis();
+
+    return cachedRedis;
 }
 
 function setCachedResults(results) {
     cachedResults = results;
 }
 
+function setCachedRedis(results) {
+    cachedRedis = results;
+}
+
 module.exports = {
     setCachedResults,
     loadHighways,
     initData,
+    loadingHighWayRedis,
+    initDataRedis,
+    setCachedRedis,
 };

@@ -25,6 +25,7 @@
         "express": "^4.19.2",
         "geolib": "^3.3.4",
         "http": "^0.0.1-security",
+        "ioredis": "^5.5.0",
         "mongodb": "^6.7.0",
         "mongoose": "^8.5.1",
         "mqtt": "^5.7.1",
@@ -33,6 +34,8 @@
         "socket.io": "^4.7.5",
         "socket.io-client": "^4.7.5",
         "uuid": "^10.0.0",
+        "winston": "^3.17.0",
+        "winston-daily-rotate-file": "^5.0.0",
         "worker-thread": "^1.1.0"
     },
     "devDependencies": {

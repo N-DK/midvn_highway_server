@@ -4,165 +4,171 @@ const turf = require('@turf/turf');
 const path = require('path');
 const fs = require('fs');
 const fetchData = require('../utils/fetchData');
-const { loadHighways } = require('../utils/loadingHighWay');
+const {
+    loadingHighWayRedis,
+    initDataRedis,
+    setCachedRedis,
+    loadHighways,
+} = require('../utils/loadingHighWay');
 const getWays = require('./getway');
+const redisModel = require('./redis.model');
 
-const vehicleData = {
-    3: {
-        name: 'Xe ô tô con',
-        type: 11,
-        maxSpeed: 90,
-        minSpeed: 80,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1717273260256,
-        endDate: 1721358556447,
-    },
-    4: {
-        name: 'Xe ô tô chở người đến 30 chỗ (trừ xe buýt)',
-        type: 12,
-        maxSpeed: 90,
-        minSpeed: 80,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1717273373286,
-        endDate: 1721358594242,
-    },
-    6: {
-        name: 'Ô tô tải có trọng tải nhỏ hơn hoặc bằng 3,5 tấn',
-        type: 10,
-        maxSpeed: 90,
-        minSpeed: 80,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1717273489882,
-        endDate: 1721358651346,
-    },
-    15: {
-        name: 'Xe ô tô chở người trên 30 chỗ (trừ xe buýt)',
-        type: 12,
-        maxSpeed: 80,
-        minSpeed: 70,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358682255,
-        endDate: null,
-    },
-    17: {
-        name: 'Ô tô tải có trọng tải trên 3,5 tấn (trừ ô tô xi téc)',
-        type: 10,
-        maxSpeed: 80,
-        minSpeed: 70,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358702555,
-        endDate: null,
-    },
-    19: {
-        name: 'Ô tô buýt',
-        type: 12,
-        maxSpeed: 70,
-        minSpeed: 60,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358729061,
-        endDate: null,
-    },
-    21: {
-        name: 'Ô tô đầu kéo kéo sơ mi rơ moóc',
-        type: 8,
-        maxSpeed: 70,
-        minSpeed: 60,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358752617,
-        endDate: 1724923649269,
-    },
-    23: {
-        name: 'Xe mô tô',
-        type: 13,
-        maxSpeed: 70,
-        minSpeed: 60,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358774968,
-        endDate: null,
-    },
-    25: {
-        name: 'Ô tô chuyên dùng (trừ ô tô trộn vữa, ô tô trộn bê tông)',
-        type: 10,
-        maxSpeed: 70,
-        minSpeed: 60,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358797030,
-        endDate: null,
-    },
-    27: {
-        name: 'Ô tô kéo rơ moóc',
-        type: 8,
-        maxSpeed: 60,
-        minSpeed: 50,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358819649,
-        endDate: 1724923657754,
-    },
-    29: {
-        name: 'Ô tô kéo xe khác',
-        type: 10,
-        maxSpeed: 60,
-        minSpeed: 50,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358837561,
-        endDate: null,
-    },
-    31: {
-        name: 'Ô tô trộn vữa',
-        type: 10,
-        maxSpeed: 60,
-        minSpeed: 50,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358855868,
-        endDate: null,
-    },
-    33: {
-        name: 'Ô tô trộn bê tông',
-        type: 15,
-        maxSpeed: 60,
-        minSpeed: 50,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358873578,
-        endDate: 1730167339181,
-    },
-    35: {
-        name: 'Ô tô xi téc',
-        type: 10,
-        maxSpeed: 60,
-        minSpeed: 50,
-        isActive: 1,
-        isDelete: 0,
-        isPremium: 0,
-        startDate: 1721358895665,
-        endDate: null,
-    },
-};
+// const vehicleData = {
+//     3: {
+//         name: 'Xe ô tô con',
+//         type: 11,
+//         maxSpeed: 90,
+//         minSpeed: 80,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1717273260256,
+//         endDate: 1721358556447,
+//     },
+//     4: {
+//         name: 'Xe ô tô chở người đến 30 chỗ (trừ xe buýt)',
+//         type: 12,
+//         maxSpeed: 90,
+//         minSpeed: 80,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1717273373286,
+//         endDate: 1721358594242,
+//     },
+//     6: {
+//         name: 'Ô tô tải có trọng tải nhỏ hơn hoặc bằng 3,5 tấn',
+//         type: 10,
+//         maxSpeed: 90,
+//         minSpeed: 80,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1717273489882,
+//         endDate: 1721358651346,
+//     },
+//     15: {
+//         name: 'Xe ô tô chở người trên 30 chỗ (trừ xe buýt)',
+//         type: 12,
+//         maxSpeed: 80,
+//         minSpeed: 70,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358682255,
+//         endDate: null,
+//     },
+//     17: {
+//         name: 'Ô tô tải có trọng tải trên 3,5 tấn (trừ ô tô xi téc)',
+//         type: 10,
+//         maxSpeed: 80,
+//         minSpeed: 70,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358702555,
+//         endDate: null,
+//     },
+//     19: {
+//         name: 'Ô tô buýt',
+//         type: 12,
+//         maxSpeed: 70,
+//         minSpeed: 60,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358729061,
+//         endDate: null,
+//     },
+//     21: {
+//         name: 'Ô tô đầu kéo kéo sơ mi rơ moóc',
+//         type: 8,
+//         maxSpeed: 70,
+//         minSpeed: 60,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358752617,
+//         endDate: 1724923649269,
+//     },
+//     23: {
+//         name: 'Xe mô tô',
+//         type: 13,
+//         maxSpeed: 70,
+//         minSpeed: 60,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358774968,
+//         endDate: null,
+//     },
+//     25: {
+//         name: 'Ô tô chuyên dùng (trừ ô tô trộn vữa, ô tô trộn bê tông)',
+//         type: 10,
+//         maxSpeed: 70,
+//         minSpeed: 60,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358797030,
+//         endDate: null,
+//     },
+//     27: {
+//         name: 'Ô tô kéo rơ moóc',
+//         type: 8,
+//         maxSpeed: 60,
+//         minSpeed: 50,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358819649,
+//         endDate: 1724923657754,
+//     },
+//     29: {
+//         name: 'Ô tô kéo xe khác',
+//         type: 10,
+//         maxSpeed: 60,
+//         minSpeed: 50,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358837561,
+//         endDate: null,
+//     },
+//     31: {
+//         name: 'Ô tô trộn vữa',
+//         type: 10,
+//         maxSpeed: 60,
+//         minSpeed: 50,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358855868,
+//         endDate: null,
+//     },
+//     33: {
+//         name: 'Ô tô trộn bê tông',
+//         type: 15,
+//         maxSpeed: 60,
+//         minSpeed: 50,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358873578,
+//         endDate: 1730167339181,
+//     },
+//     35: {
+//         name: 'Ô tô xi téc',
+//         type: 10,
+//         maxSpeed: 60,
+//         minSpeed: 50,
+//         isActive: 1,
+//         isDelete: 0,
+//         isPremium: 0,
+//         startDate: 1721358895665,
+//         endDate: null,
+//     },
+// };
 
 const highwayModule = {
     isInside(way, point) {
@@ -193,9 +199,9 @@ const highwayModule = {
         return results;
     },
     checker: {
-        highway(lat, lng, accessKey) {
+        async highway(lat, lng) {
             const key = swith.getKeyFloor2([lat, lng])?.key;
-            const highway = loadHighways();
+            const highway = await loadHighways();
 
             var netKeys = highway.netKeys;
             var data = highway.data;
@@ -207,6 +213,7 @@ const highwayModule = {
                 is_in_bounds: false,
                 result: 0,
             };
+
             const boundList = netKeys?.[key] || [];
 
             if (!boundList?.length) return returnObj;
@@ -226,9 +233,9 @@ const highwayModule = {
                 if (isInside) {
                     hReturn = way;
                     returnObj.is_in_bounds = true;
-                    returnObj['result'] =
-                        wayId?.split('-')[0] === 'trunks' ? 2 : 1;
-
+                    returnObj.result = 1;
+                    // returnObj['result'] =
+                    //     wayId?.split('-')[0] === 'trunks' ? 2 : 1;
                     break;
                 }
             }

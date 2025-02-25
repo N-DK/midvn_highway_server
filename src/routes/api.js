@@ -28,5 +28,6 @@ router.post('/trunks/insert-relations-by-name', api.insertTrunkRelationsByName);
 router.post('/trunks/insert-relations-url', api.insertTrunkRelationsByUrl);
 router.get('/load-test', api.loadTest);
 router.get('/', api.index);
+router.post('/highways/save-redis', api.saveHighwaysToRedis);
 
 module.exports = router;
